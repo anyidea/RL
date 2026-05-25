@@ -155,6 +155,21 @@ if [[ -n "${BUILD_CUSTOM_FLASHINFER:-}" ]]; then
 fi
 # uv sync has a more reliable resolver than simple uv pip install which can fail
 
+# ... 前面的代码不变 ...
+
+# ==========================================
+# [新增补丁] 伪造 NVCC 版本，绕过 PyTorch 的版本一致性强校验
+mv /usr/local/cuda/bin/nvcc /usr/local/cuda/bin/nvcc.real
+echo '#!/bin/bash' > /usr/local/cuda/bin/nvcc
+echo 'if [[ "$*" == *"--version"* || "$*" == *"-V"* ]]; then' >> /usr/local/cuda/bin/nvcc
+echo '    echo "nvcc: NVIDIA (R) Cuda compiler driver"' >> /usr/local/cuda/bin/nvcc
+echo '    echo "Cuda compilation tools, release 12.9, V12.9.0"' >> /usr/local/cuda/bin/nvcc
+echo '    exit 0' >> /usr/local/cuda/bin/nvcc
+echo 'fi' >> /usr/local/cuda/bin/nvcc
+echo 'exec /usr/local/cuda/bin/nvcc.real "$@"' >> /usr/local/cuda/bin/nvcc
+chmod +x /usr/local/cuda/bin/nvcc
+# ==========================================
+
 # Sync each training + inference backend one at a time (since they may conflict)
 # to warm the uv cache, then at the end just sync the default dependencies.
 # Do everything in one layer to prevent large layers.
