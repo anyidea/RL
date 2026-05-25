@@ -173,6 +173,11 @@ chmod +x /usr/local/cuda/bin/nvcc
 # 【新增优化】: 仅使用 vLLM，直接跳过 SGLang 的编译，绕过 CMake 检查
 export SKIP_SGLANG_BUILD=1
 
+# 【新增优化】: 限制编译架构，避免 CUDA 13 报错不支持老架构 (如 compute_53)
+# 9.0 对应 Hopper, 10.0/12.0 对应 Blackwell (GB10)
+export TORCH_CUDA_ARCH_LIST="9.0;10.0;12.0"
+export NVCC_APPEND_FLAGS="-allow-unsupported-compiler"
+
 # Sync each training + inference backend one at a time (since they may conflict)
 # to warm the uv cache, then at the end just sync the default dependencies.
 # Do everything in one layer to prevent large layers.
